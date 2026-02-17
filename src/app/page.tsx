@@ -29,6 +29,7 @@ export default function Home() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<JobStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "company">("date");
   const [darkMode, setDarkMode] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [formData, setFormData] = useState({
@@ -83,6 +84,11 @@ export default function Home() {
       job.company.toLowerCase().includes(search.toLowerCase()) ||
       job.role.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
+  }).sort((a, b) => {
+    if (sortBy === "date") {
+      return new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime();
+    }
+    return a.company.localeCompare(b.company);
   });
 
   return (
@@ -143,6 +149,14 @@ export default function Home() {
             <option value="interview">Interview</option>
             <option value="offer">Offer</option>
             <option value="rejected">Rejected</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "date" | "company")}
+            className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="date">Newest</option>
+            <option value="company">Company</option>
           </select>
         </div>
 
