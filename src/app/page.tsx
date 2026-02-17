@@ -27,6 +27,8 @@ const statusColors: Record<JobStatus, string> = {
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [filter, setFilter] = useState<JobStatus | "all">("all");
+  const [search, setSearch] = useState("");
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [formData, setFormData] = useState({
     company: "",
@@ -74,13 +76,21 @@ export default function Home() {
     rejected: jobs.filter((j) => j.status === "rejected").length,
   };
 
+  const filteredJobs = jobs.filter((job) => {
+    const matchesFilter = filter === "all" || job.status === filter;
+    const matchesSearch = 
+      job.company.toLowerCase().includes(search.toLowerCase()) ||
+      job.role.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <main className="min-h-screen p-6 md:p-12">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-12">
           <h1 className="text-4xl font-bold mb-2">Job Tracker</h1>
-          <p className="text-slate-400">Track your applications with AI-powered insights</p>
+          <p className="text-slate-400">Track your job applications</p>
         </header>
 
         {/* Stats */}
@@ -101,6 +111,28 @@ export default function Home() {
             <p className="text-2xl font-bold text-green-400">{stats.offer}</p>
             <p className="text-slate-400 text-sm">Offers</p>
           </div>
+        </div>
+
+        {/* Search & Filter */}
+        <div className="flex gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="Search jobs..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-500"
+          />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as JobStatus | "all")}
+            className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="all">All</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
 
         {/* Add Button */}
@@ -178,7 +210,7 @@ export default function Home() {
 
         {/* Job List */}
         <div className="space-y-4">
-          {jobs.length === 0 ? (
+          {filteredJobs.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
               <p>No applications yet. Add your first job!</p>
