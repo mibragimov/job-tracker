@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Briefcase, Building, MapPin, DollarSign, ExternalLink, Trash2, Edit2, Check, X } from "lucide-react";
+import { Plus, Briefcase, Building, MapPin, DollarSign, ExternalLink, Trash2, Search, Filter, Moon, Sun } from "lucide-react";
 
 type JobStatus = "applied" | "interview" | "offer" | "rejected";
 
@@ -29,6 +29,7 @@ export default function Home() {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<JobStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [darkMode, setDarkMode] = useState(true);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [formData, setFormData] = useState({
     company: "",
@@ -89,8 +90,18 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">Job Tracker</h1>
-          <p className="text-slate-400">Track your job applications</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Job Tracker</h1>
+              <p className="text-slate-400">Track your job applications</p>
+            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+          </div>
         </header>
 
         {/* Stats */}
