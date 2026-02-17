@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Job Tracker - Track Your Applications",
-  description: "Track and manage your job applications with AI-powered insights",
+  description: "Track and manage your job applications",
 };
 
 export default function RootLayout({

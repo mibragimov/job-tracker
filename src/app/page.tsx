@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Briefcase, Building, MapPin, DollarSign, ExternalLink, Trash2, Search, Filter, Moon, Sun } from "lucide-react";
+import { Plus, Briefcase, Building, MapPin, DollarSign, ExternalLink, Trash2, Search, Filter, Moon, Sun, Lightbulb, Loader2 } from "lucide-react";
 
 type JobStatus = "applied" | "interview" | "offer" | "rejected";
 
@@ -31,6 +31,9 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "company">("date");
   const [darkMode, setDarkMode] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [tips, setTips] = useState<string>("");
+  const [loadingTips, setLoadingTips] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [formData, setFormData] = useState({
     company: "",
@@ -68,6 +71,25 @@ export default function Home() {
 
   const deleteJob = (id: string) => {
     setJobs(jobs.filter((j) => j.id !== id));
+  };
+
+  const getTips = async (job: Job) => {
+    setSelectedJob(job);
+    setLoadingTips(true);
+    setTips("");
+    
+    try {
+      const res = await fetch("/api/tips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: job.role, company: job.company })
+      });
+      const data = await res.json();
+      setTips(data.tips || "No tips available");
+    } catch (e) {
+      setTips("Failed to load tips");
+    }
+    setLoadingTips(false);
   };
 
   const stats = {
@@ -233,6 +255,14 @@ export default function Home() {
           </div>
         )}
 
+        {/* Tips Section */}
+        {tips && (
+          <div className="mt-6 p-4 bg-cyan-900/30 border border-cyan-700 rounded-lg">
+            <h3 className="font-bold mb-2">Tips for {selectedJob?.role} at {selectedJob?.company}</h3>
+            <pre className="whitespace-pre-wrap text-sm text-cyan-200">{tips}</pre>
+          </div>
+        )}
+
         {/* Job List */}
         <div className="space-y-4">
           {filteredJobs.length === 0 ? (
@@ -285,6 +315,13 @@ export default function Home() {
                         <ExternalLink size={18} />
                       </a>
                     )}
+                    <button
+                      onClick={() => getTips(job)}
+                      className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      title="Get tips"
+                    >
+                      {loadingTips && selectedJob?.id === job.id ? <Loader2 size={18} className="animate-spin" /> : <Lightbulb size={18} />}
+                    </button>
                     <select
                       value={job.status}
                       onChange={(e) => updateStatus(job.id, e.target.value as JobStatus)}
