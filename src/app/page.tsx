@@ -1,0 +1,256 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Plus, Briefcase, Building, MapPin, DollarSign, ExternalLink, Trash2, Edit2, Check, X } from "lucide-react";
+
+type JobStatus = "applied" | "interview" | "offer" | "rejected";
+
+interface Job {
+  id: string;
+  company: string;
+  role: string;
+  location: string;
+  salary?: string;
+  url: string;
+  status: JobStatus;
+  notes: string;
+  appliedDate: string;
+}
+
+const statusColors: Record<JobStatus, string> = {
+  applied: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  interview: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  offer: "bg-green-500/20 text-green-400 border-green-500/30",
+  rejected: "bg-red-500/20 text-red-400 border-red-500/30",
+};
+
+export default function Home() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [formData, setFormData] = useState({
+    company: "",
+    role: "",
+    location: "",
+    salary: "",
+    url: "",
+    notes: "",
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem("jobs");
+    if (saved) setJobs(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("jobs", JSON.stringify(jobs));
+  }, [jobs]);
+
+  const addJob = () => {
+    const newJob: Job = {
+      id: Date.now().toString(),
+      ...formData,
+      status: "applied",
+      appliedDate: new Date().toISOString().split("T")[0],
+    };
+    setJobs([newJob, ...jobs]);
+    setFormData({ company: "", role: "", location: "", salary: "", url: "", notes: "" });
+    setShowForm(false);
+  };
+
+  const updateStatus = (id: string, status: JobStatus) => {
+    setJobs(jobs.map((j) => (j.id === id ? { ...j, status } : j)));
+  };
+
+  const deleteJob = (id: string) => {
+    setJobs(jobs.filter((j) => j.id !== id));
+  };
+
+  const stats = {
+    total: jobs.length,
+    applied: jobs.filter((j) => j.status === "applied").length,
+    interview: jobs.filter((j) => j.status === "interview").length,
+    offer: jobs.filter((j) => j.status === "offer").length,
+    rejected: jobs.filter((j) => j.status === "rejected").length,
+  };
+
+  return (
+    <main className="min-h-screen p-6 md:p-12">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <header className="mb-12">
+          <h1 className="text-4xl font-bold mb-2">Job Tracker</h1>
+          <p className="text-slate-400">Track your applications with AI-powered insights</p>
+        </header>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <p className="text-2xl font-bold">{stats.total}</p>
+            <p className="text-slate-400 text-sm">Total</p>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <p className="text-2xl font-bold text-blue-400">{stats.applied}</p>
+            <p className="text-slate-400 text-sm">Applied</p>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <p className="text-2xl font-bold text-yellow-400">{stats.interview}</p>
+            <p className="text-slate-400 text-sm">Interview</p>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+            <p className="text-2xl font-bold text-green-400">{stats.offer}</p>
+            <p className="text-slate-400 text-sm">Offers</p>
+          </div>
+        </div>
+
+        {/* Add Button */}
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold px-6 py-3 rounded-lg transition-colors mb-8"
+        >
+          <Plus size={20} />
+          Add Application
+        </button>
+
+        {/* Form Modal */}
+        {showForm && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+            <div className="bg-slate-800 rounded-xl p-6 w-full max-w-lg border border-slate-700">
+              <h2 className="text-xl font-bold mb-4">Add New Application</h2>
+              <div className="space-y-4">
+                <input
+                  placeholder="Company Name *"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                />
+                <input
+                  placeholder="Role *"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    placeholder="Location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                  />
+                  <input
+                    placeholder="Salary Range"
+                    value={formData.salary}
+                    onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                    className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <input
+                  placeholder="Job URL"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                />
+                <textarea
+                  placeholder="Notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={addJob}
+                  className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold py-3 rounded-lg transition-colors"
+                >
+                  Add Job
+                </button>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="px-6 py-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Job List */}
+        <div className="space-y-4">
+          {jobs.length === 0 ? (
+            <div className="text-center py-12 text-slate-500">
+              <Briefcase size={48} className="mx-auto mb-4 opacity-50" />
+              <p>No applications yet. Add your first job!</p>
+            </div>
+          ) : (
+            jobs.map((job) => (
+              <div
+                key={job.id}
+                className="bg-slate-800/50 rounded-xl p-5 border border-slate-700 hover:border-slate-600 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-lg font-semibold">{job.role}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-full border ${statusColors[job.status]}`}>
+                        {job.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-slate-400 text-sm mb-2">
+                      <span className="flex items-center gap-1">
+                        <Building size={14} />
+                        {job.company}
+                      </span>
+                      {job.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin size={14} />
+                          {job.location}
+                        </span>
+                      )}
+                      {job.salary && (
+                        <span className="flex items-center gap-1">
+                          <DollarSign size={14} />
+                          {job.salary}
+                        </span>
+                      )}
+                    </div>
+                    {job.notes && <p className="text-slate-400 text-sm">{job.notes}</p>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {job.url && (
+                      <a
+                        href={job.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
+                        <ExternalLink size={18} />
+                      </a>
+                    )}
+                    <select
+                      value={job.status}
+                      onChange={(e) => updateStatus(job.id, e.target.value as JobStatus)}
+                      className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                    >
+                      <option value="applied">Applied</option>
+                      <option value="interview">Interview</option>
+                      <option value="offer">Offer</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                    <button
+                      onClick={() => deleteJob(job.id)}
+                      className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
